@@ -1,6 +1,37 @@
 # Topic 2 :Fine-Tuning-Small-Language-Model-Sub-4-with-Higher-Language-Model
 Fine-Tuning Small Language Model (Sub-4) with Higher Language Model — Specific Task: Drug Interaction Analysis
 
+---
+
+## ☁️ Access & Reproducibility
+
+You can reproduce the full fine-tuning experiment or inspect the training outputs using the resources below 👇  
+
+### 🔗 Run the Notebook on Google Colab
+
+Run the complete fine-tuning pipeline (model setup, LoRA configuration, and evaluation) directly in Colab.  
+Supports GPU runtime (L4 / T4 / A100) and automatic logging to Drive.
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Bbbqdqk7a8d3qjIgPc0VhJFp9tpj042p?usp=sharing)
+
+> 💡 **Note:** Connect to a GPU runtime before training. The notebook automatically saves checkpoints and evaluation logs to your Drive.
+
+---
+
+### 📂 Google Drive Project Folder
+
+Access the full dataset, logs, and fine-tuned model outputs from the following shared Drive folder:  
+📁 [Open Project Folder on Google Drive](https://drive.google.com/drive/folders/1Q0zfAugj8maGjeWX7iQX1cjHYIvXSa00?usp=sharing)
+
+This folder includes:
+- 📊 `metrics_val_*.csv` — Automatic evaluation results (BLEU, ROUGE-L, F1, BERTScore, etc.)  
+- 📁 `finetuned_qwen_drug_lora/` — Model checkpoints and LoRA adapter weights  
+- 📑 `evaluateTeacherStudent.csv` — Pairwise comparison between Base and Fine-tuned model  
+- 🧪 `logs/` — Training progress and validation history
+
+---
+
+
 
 ### 📘 Overview
 
@@ -95,6 +126,44 @@ flowchart TD
 
 ### 🧩 การตั้งค่า (Model & Training Configuration)
 
+```python
+# ========================================================= 
+# 🧩 การตั้งค่า (Model & Training Configuration)
+# =========================================================
+
+# 🧠 Random seed เพื่อความ reproducible
+SEED = 42
+set_seed(SEED)
+
+# 📂 เส้นทางหลัก
+MAIN_PATH = "/content/drive/MyDrive/demo_finetuning/"  # <-- ปรับตาม Colab/Drive ของคุณ
+
+# 📁 โฟลเดอร์สำคัญ
+OUTPUT_DIR = MAIN_PATH + "finetuned_qwen3_1p7b_lora_checkpoints"   # สำหรับ checkpoint ระหว่างเทรน
+SAVE_DIR   = MAIN_PATH + "qwen3_1p7b-instruct-lora"                 # ที่เก็บโมเดลดีที่สุดหลังเทรน
+DATA_CSV_PATH = MAIN_PATH + "teacher_dataset.csv"                   # ไฟล์ dataset
+LOG_CSV   = MAIN_PATH + "training_logs.csv"                         # ไฟล์ log loss
+COMPARE_CSV = MAIN_PATH + "winrate_20.csv"                          # ไฟล์เปรียบเทียบ base vs fine-tuned
+
+# ⚙️ พารามิเตอร์เทรนหลัก
+VAL_SIZE      = 0.1           # สัดส่วน validation set
+PATIENCE      = 2             # early stopping patience
+EVAL_STRATEGY = "epoch"       # evaluation ต่อ epoch
+MODEL_NAME    = "Qwen/Qwen3-1.7B"   # base model สำหรับ fine-tune
+MAX_LENGTH    = 2048          # ความยาวสูงสุดต่อ sequence
+SAMPLE_N      = 20            # จำนวน sample สำหรับ quick compare
+USE_CHAT_TEMPLATE = False     # หากโมเดลรองรับ chat template ของ HF ให้ตั้ง True
+
+# ⚙️ Environment flags
+os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "1"
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
+print(f"🧩 Configuration loaded successfully:\n"
+      f"- Model: {MODEL_NAME}\n"
+      f"- Data:  {DATA_CSV_PATH}\n"
+      f"- Save:  {SAVE_DIR}\n"
+      f"- Eval strategy: {EVAL_STRATEGY}\n")
+
 ### 💻 Environment
 
 - 🌩️ Platform: **Google Colab Pro**
@@ -107,6 +176,7 @@ flowchart TD
     - `prompt`: คำถามหรือบริบททางยา
     - `response_teacher`: คำตอบที่สร้างจาก GPT-4o-mini
     - `response_student`: คำตอบของ base model (ใช้เปรียบเทียบก่อนและหลังจูน)
+```
 
 ## 🧩 Code Walkthrough
 
